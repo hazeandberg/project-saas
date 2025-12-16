@@ -3,7 +3,7 @@ __pycache__/
 *.pyc
 .venv/
 venv/
-
+src/ml/models/
 # VS Code
 .vscode/
 
