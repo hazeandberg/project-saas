@@ -1,0 +1,40 @@
+# VCS
+.git
+.gitignore
+
+# Env / secrets
+.env
+.env.*
+*.key
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Virtual env
+venv/
+.venv/
+
+# IDE
+.vscode/
+
+# Notebooks / docs (optionnel)
+notebooks/
+docs/
+
+# Tests (optionnel pour l'image runtime)
+tests/
+
+# Data lourde (garde seulement ce qui est nécessaire au runtime)
+data/raw/
+data/processed/
+
+# OS
+.DS_Store
+Thumbs.db
