@@ -1,100 +1,121 @@
-import pandas as pd
-from sklearn.model_selection import train_test_split
-from sklearn.compose import ColumnTransformer
-from sklearn.preprocessing import OneHotEncoder, StandardScaler
-from sklearn.pipeline import Pipeline
-from sklearn.ensemble import RandomForestRegressor
-from sklearn.metrics import mean_absolute_error, mean_squared_error
-import numpy as np
-import joblib
 from pathlib import Path
 
-
-PATH = "data/ml_ready/df_ml_ready.csv"
-df = pd.read_csv(PATH)
-
-print(df.shape)
-print(df.head())
-
-X = df.drop(columns=["ca_total"])
-y = df["ca_total"]
-
-X_train, X_test, y_train, y_test = train_test_split(
-    X, y, test_size=0.2, random_state=42
-)
-
-print("X_train:", X_train.shape)
-print("X_test:", X_test.shape)
-print("y_train:", y_train.shape)
-print("y_test:", y_test.shape)
-
-### preprocess
-
-num_features = ["nb_paiements", "actions_total", "sessions_total", "anciennete_jours"]
-cat_features = ["plan", "ville"]
-
-print("Num features:", num_features)
-print("Cat features:", cat_features)
-print("X columns:", list(X.columns))
-
-preprocess = ColumnTransformer(
-    transformers=[
-        ("num", StandardScaler(), num_features),
-        ("cat", OneHotEncoder(handle_unknown="ignore"), cat_features),
-    ]
-)
-
-preprocess.fit(X_train)
-
-X_train_p = preprocess.transform(X_train)
-X_test_p = preprocess.transform(X_test)
-
-print("X_train_p shape:", X_train_p.shape)
-print("X_test_p shape:", X_test_p.shape)
-
-###construire le pipe
-
-model = RandomForestRegressor()
-
-pipeline = Pipeline(
-    steps=[
-        ("preprocess", preprocess),
-        ("model", model),
-    ]
-)
-pipeline.fit(X_train, y_train)
-y_pred = pipeline.predict(X_test)
-
-print("Prédictions:", y_pred)
-print("Valeurs réelles:", y_test.values)
+import joblib
+import numpy as np
+import pandas as pd
+from sklearn.compose import ColumnTransformer
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.metrics import mean_absolute_error, mean_squared_error
+from sklearn.model_selection import train_test_split
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import OneHotEncoder, StandardScaler
 
 
-### Evaluer un modèle
+# =========================
+# Paths
+# =========================
+PATH_IN = "data/ml_ready/df_ml_ready.csv"
+MODELS_DIR = Path("src/ml/models")
+PATH_MODEL_RF = MODELS_DIR / "model_rf_v1.joblib"
+PATH_MODEL_CURRENT = MODELS_DIR / "model_current_v1.joblib"
 
-mae = mean_absolute_error(y_test, y_pred)
-rmse = np.sqrt(mean_squared_error(y_test, y_pred))
-
-print(f"MAE  : {mae:.2f}")
-print(f"RMSE : {rmse:.2f}")
-
-###exporter le résultat
-
-Path("src/ml/models").mkdir(parents=True, exist_ok=True)
-
-joblib.dump(pipeline, "src/ml/models/model_rf_v1.joblib")
-
-###idem mais conservé comme modèle officiel copie renommée après choix modèle
-
-joblib.dump(pipeline, "src/ml/models/model_current_v1.joblib")
-print("Saved current model: src/ml/models/model_current_v1.joblib")
+METRICS_DIR = Path("data/ml_ready")
+PATH_METRICS = METRICS_DIR / "metrics_v1.csv"
 
 
-### export por comparaison modèles dans csv communs.
+# =========================
+# Contract (must match build_ml_ready.py output)
+# =========================
+TARGET = "ca_total"
+NUM_FEATURES = ["nb_paiements", "actions_total", "sessions_total", "anciennete_jours"]
+CAT_FEATURES = ["plan", "ville"]
+ALL_FEATURES = NUM_FEATURES + CAT_FEATURES
 
-Path("data/ml_ready").mkdir(parents=True, exist_ok=True)
 
-row = pd.DataFrame([{"model": "RandomForest", "MAE": mae, "RMSE": rmse}])
-out = Path("data/ml_ready/metrics_v1.csv")
+def main() -> None:
+    # --- Read ---
+    print("IN :", PATH_IN)
+    df = pd.read_csv(PATH_IN)
+    print("shape_in :", df.shape)
+    print("cols_in  :", df.columns.tolist())
 
-row.to_csv(out, mode="a", header=not out.exists(), index=False)
-print(f"Metrics saved to: {out}")
+    # --- Guards ---
+    required = set(ALL_FEATURES + [TARGET])
+    missing = sorted(required - set(df.columns))
+    if missing:
+        raise KeyError(f"Colonnes manquantes dans {PATH_IN}: {missing}")
+    if df.empty:
+        raise ValueError(f"Dataset vide: {PATH_IN}")
+
+    # --- Split X/y (strict contract) ---
+    X = df[ALL_FEATURES].copy()
+    y = df[TARGET].copy()
+
+    X_train, X_test, y_train, y_test = train_test_split(
+        X, y, test_size=0.2, random_state=42
+    )
+
+    print("X_train:", X_train.shape)
+    print("X_test :", X_test.shape)
+    print("y_train:", y_train.shape)
+    print("y_test :", y_test.shape)
+
+    # --- Preprocess ---
+    preprocess = ColumnTransformer(
+        transformers=[
+            ("num", StandardScaler(), NUM_FEATURES),
+            ("cat", OneHotEncoder(handle_unknown="ignore"), CAT_FEATURES),
+        ],
+        remainder="drop",
+    )
+
+    # --- Model + pipeline ---
+    model = RandomForestRegressor(random_state=42)
+    pipeline = Pipeline(
+        steps=[
+            ("preprocess", preprocess),
+            ("model", model),
+        ]
+    )
+
+    pipeline.fit(X_train, y_train)
+    y_pred = pipeline.predict(X_test)
+
+    # --- Eval ---
+    mae = mean_absolute_error(y_test, y_pred)
+    rmse = float(np.sqrt(mean_squared_error(y_test, y_pred)))
+
+    print(f"MAE  : {mae:.2f}")
+    print(f"RMSE : {rmse:.2f}")
+
+    # --- Outputs ---
+    MODELS_DIR.mkdir(parents=True, exist_ok=True)
+    METRICS_DIR.mkdir(parents=True, exist_ok=True)
+
+    joblib.dump(pipeline, PATH_MODEL_RF)
+    joblib.dump(pipeline, PATH_MODEL_CURRENT)
+
+    print("OUT model_rf      :", str(PATH_MODEL_RF))
+    print("OUT model_current :", str(PATH_MODEL_CURRENT))
+
+    row = pd.DataFrame(
+        [
+            {
+                "model": "RandomForestRegressor",
+                "target": TARGET,
+                "MAE": float(mae),
+                "RMSE": float(rmse),
+                "n_rows": int(df.shape[0]),
+                "n_features": int(len(ALL_FEATURES)),
+            }
+        ]
+    )
+
+    write_header = not PATH_METRICS.exists()
+    row.to_csv(PATH_METRICS, mode="a", header=write_header, index=False)
+
+    print("OUT metrics:", str(PATH_METRICS))
+
+
+if __name__ == "__main__":
+    main()
