@@ -5,7 +5,6 @@ import json
 import joblib
 import pandas as pd
 
-from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import OneHotEncoder
 from sklearn.compose import ColumnTransformer
 from sklearn.pipeline import Pipeline
@@ -18,7 +17,7 @@ from sklearn.metrics import (
 )
 
 
-PATH_IN = "data/ml_ready/df_ml_ready.csv"
+PATH_IN = "data/ml_ready/df_ml_churn_ready.csv"
 MODEL_OUT = "src/ml/models/churn_model_v1.joblib"
 METRICS_OUT = "data/ml_ready/churn_metrics_v1.json"
 
@@ -67,6 +66,11 @@ def main() -> None:
     missing = expected - set(df.columns)
     if missing:
         raise ValueError(f"Colonnes manquantes dans {PATH_IN}: {sorted(missing)}")
+    # Garde-fou dataset : si une seule classe, métriques et apprentissage churn non fiables
+    if df[TARGET].nunique() < 2:
+        print(
+            "⚠️ Dataset churn: une seule classe présente. Modèle/metrics non fiables sur ce dataset."
+        )
 
     # Split temporel (pas de random)
     train_df, test_df = temporal_split(df, test_size=0.3)

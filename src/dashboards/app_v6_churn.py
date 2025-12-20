@@ -5,7 +5,7 @@ import streamlit as st
 
 st.title("Dashboard V6 — ML (Churn 7–30j) — Décisionnel")
 
-DATA_PATH = "data/ml_ready/df_ml_ready.csv"
+DATA_PATH = "data/ml_ready/df_ml_churn_ready.csv"
 METRICS_PATH = "data/ml_ready/churn_metrics_v1.json"
 MODEL_PATH = "src/ml/models/churn_model_v1.joblib"
 

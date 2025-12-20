@@ -3,7 +3,6 @@ __pycache__/
 *.pyc
 .venv/
 venv/
-src/ml/models/
 train
 # VS Code
 .vscode/
@@ -11,3 +10,8 @@ train
 # Generated data
 data/processed/
 data/ml_ready/
+data/ml_churn_ready/
+# RAG local index
+chroma_db/
+#doc interne
+docs

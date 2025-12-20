@@ -1,0 +1,39 @@
+version: 1
+policy:
+  # Priorisation globale
+  prioritization:
+    - name: "Churn élevé + client à fort CA"
+      if: "churn_risk == 'high' and ca_total_high == true"
+      priority: 1
+      action: "appel_urgent_48h"
+      rationale: "Risque de perte + impact financier important"
+
+    - name: "One-shot récent + churn moyen/élevé"
+      if: "recent_one_shot == true and churn_risk in ['medium','high']"
+      priority: 2
+      action: "appel_reassurance_et_plan"
+      rationale: "Achat récent ≠ fidélité ; sécuriser la relation"
+
+    - name: "Usage fort + churn faible => upsell"
+      if: "usage_level == 'high' and churn_risk == 'low'"
+      priority: 3
+      action: "proposer_upsell"
+      rationale: "Client engagé => opportunité d’augmenter le panier"
+
+    - name: "Usage faible + churn moyen"
+      if: "usage_level == 'low' and churn_risk == 'medium'"
+      priority: 4
+      action: "onboarding_cible"
+      rationale: "Réactiver avant que l’inertie devienne churn"
+
+  # Seuils (à ajuster plus tard avec données réelles)
+  thresholds:
+    inactivity_days:
+      high_risk: 21
+      medium_risk: 10
+    usage_level:
+      high_sessions: 30
+      low_sessions: 8
+    churn_risk:
+      low_max: 0.20
+      medium_max: 0.50

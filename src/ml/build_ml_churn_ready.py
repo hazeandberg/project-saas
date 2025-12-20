@@ -5,7 +5,8 @@ import pandas as pd
 # =========================
 REPORT_PATH = "data/processed/report_oop.csv"
 SUBS_PATH = "data/raw/subscriptions.csv"
-PATH_OUT = "data/ml_ready/df_ml_ready.csv"
+PATH_OUT = "data/ml_ready/df_ml_churn_ready.csv"
+
 
 # =========================
 # Paramètres figés (Semaine 2)
