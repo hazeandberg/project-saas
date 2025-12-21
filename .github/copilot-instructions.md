@@ -9,7 +9,7 @@
   - Raw CSVs in `data/raw/`
   - Processed outputs in `data/processed/`, ML-ready in `data/ml_ready/`
 - **ML:**
-  - Training scripts in `src/ml/` (e.g., `train_churn_model_v1.py`)
+  - Training scripts in `src/ml/` (e.g., `train_churn_model.py`)
   - Model artifacts in `src/ml/models/`
 - **API:**
   - FastAPI app in `src/api/main.py` (serves `/predict` endpoint)
@@ -21,7 +21,7 @@
 
 ## Developer Workflows
 - **Train Model:**
-  - `python -m src.ml.train_churn_model_v1`
+  - `python -m src.ml.train_churn_model`
 - **Run API:**
   - `python -m uvicorn src.api.main:app --reload`
 - **Run Dashboards:**
@@ -44,7 +44,7 @@
 
 ## Integration & Conventions
 - **Imports:** Use relative imports within `src/` modules
-- **Entrypoints:** Scripts are run as modules (e.g., `python -m src.ml.train_churn_model_v1`)
+- **Entrypoints:** Scripts are run as modules (e.g., `python -m src.ml.train_churn_model`)
 - **Artifacts:** All persistent outputs (models, metrics, processed data) are stored in versioned subfolders
 - **Docs:**
   - See `docs_corpus/` for internal rules, playbooks, and response formats (notably `40_response_format.md`)

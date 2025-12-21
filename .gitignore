@@ -13,5 +13,6 @@ data/ml_ready/
 data/ml_churn_ready/
 # RAG local index
 chroma_db/
-#doc interne
-docs
+
+# Architecture docs (generated, not docs_corpus which is versioned)
+docs/

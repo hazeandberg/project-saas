@@ -63,7 +63,7 @@ Copier le code
 
 ### 1) Train churn model (build used by churn dashboards / API)
 ```bash
-python -m src.ml.train_churn_model_v1
+python -m src.ml.train_churn_model
 This generates:
 
 src/ml/models/churn_model_v1.joblib
@@ -121,9 +121,9 @@ http://127.0.0.1:8000/docs
 
 Repository map (active entrypoints)
 Data / ML
-ML-ready builder: src/ml/build_ml_churn_ready_v1.py
+ML-ready builder: src/ml/build_ml_churn_ready.py
 
-Churn trainer (v6 reference): src/ml/train_churn_model_v1.py
+Churn trainer (active): src/ml/train_churn_model.py
 
 Model artifact: src/ml/models/churn_model_v1.joblib
 

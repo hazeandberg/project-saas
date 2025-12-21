@@ -28,6 +28,9 @@ venv/
 notebooks/
 docs/
 
+# Chroma DB local (ne pas embarquer dans l'image)
+chroma_db/
+
 # Tests (optionnel pour l'image runtime)
 tests/
 
